@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GREEN-API Test Task</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="app">
+    <section class="panel left-panel">
+      <h1>GREEN-API</h1>
+      <p class="subtitle">Тестовое задание · 2 линия поддержки</p>
+
+      <div class="field-group">
+        <label for="idInstance">idInstance</label>
+        <input id="idInstance" type="text" placeholder="Введите idInstance" autocomplete="off" />
+      </div>
+
+      <div class="field-group">
+        <label for="apiTokenInstance">ApiTokenInstance</label>
+        <input id="apiTokenInstance" type="password" placeholder="Введите ApiTokenInstance" autocomplete="off" />
+      </div>
+
+      <div class="buttons">
+        <button id="getSettingsBtn">getSettings</button>
+        <button id="getStateBtn">getStateInstance</button>
+      </div>
+
+      <div class="method-block">
+        <label for="messageChatId">Chat ID</label>
+        <input id="messageChatId" type="text" placeholder="77771234567@c.us" />
+
+        <label for="messageText">Сообщение</label>
+        <textarea id="messageText" rows="4" placeholder="Hello from GREEN-API!"></textarea>
+
+        <button id="sendMessageBtn">sendMessage</button>
+      </div>
+
+      <div class="method-block">
+        <label for="fileChatId">Chat ID</label>
+        <input id="fileChatId" type="text" placeholder="77771234567@c.us" />
+
+        <label for="fileUrl">URL файла</label>
+        <input id="fileUrl" type="url" placeholder="https://example.com/file.pdf" />
+
+        <label for="fileCaption">Подпись <span>(необязательно)</span></label>
+        <input id="fileCaption" type="text" placeholder="Описание файла" />
+
+        <button id="sendFileBtn">sendFileByUrl</button>
+      </div>
+
+      <p class="hint">Данные инстанса используются только в браузере и не сохраняются на сервере.</p>
+    </section>
+
+    <section class="panel response-panel">
+      <div class="response-header">
+        <h2>Ответ:</h2>
+        <button id="clearBtn" class="clear-btn" type="button">Очистить</button>
+      </div>
+      <textarea id="response" readonly spellcheck="false" aria-label="Ответ API"></textarea>
+      <div id="status" class="status" aria-live="polite"></div>
+    </section>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
