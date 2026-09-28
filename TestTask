@@ -1,0 +1,392 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GREEN-API Test Task</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="app">
+    <section class="panel left-panel">
+      <h1>GREEN-API</h1>
+      <p class="subtitle">Тестовое задание · 2 линия поддержки</p>
+
+      <div class="field-group">
+        <label for="idInstance">idInstance</label>
+        <input id="idInstance" type="text" placeholder="Введите idInstance" autocomplete="off" />
+      </div>
+
+      <div class="field-group">
+        <label for="apiTokenInstance">ApiTokenInstance</label>
+        <input id="apiTokenInstance" type="password" placeholder="Введите ApiTokenInstance" autocomplete="off" />
+      </div>
+
+      <div class="buttons">
+        <button id="getSettingsBtn">getSettings</button>
+        <button id="getStateBtn">getStateInstance</button>
+      </div>
+
+      <div class="method-block">
+        <label for="messageChatId">Chat ID</label>
+        <input id="messageChatId" type="text" placeholder="77771234567@c.us" />
+
+        <label for="messageText">Сообщение</label>
+        <textarea id="messageText" rows="4" placeholder="Hello from GREEN-API!"></textarea>
+
+        <button id="sendMessageBtn">sendMessage</button>
+      </div>
+
+      <div class="method-block">
+        <label for="fileChatId">Chat ID</label>
+        <input id="fileChatId" type="text" placeholder="77771234567@c.us" />
+
+        <label for="fileUrl">URL файла</label>
+        <input id="fileUrl" type="url" placeholder="https://example.com/file.pdf" />
+
+        <label for="fileCaption">Подпись <span>(необязательно)</span></label>
+        <input id="fileCaption" type="text" placeholder="Описание файла" />
+
+        <button id="sendFileBtn">sendFileByUrl</button>
+      </div>
+
+      <p class="hint">Данные инстанса используются только в браузере и не сохраняются на сервере.</p>
+    </section>
+
+    <section class="panel response-panel">
+      <div class="response-header">
+        <h2>Ответ:</h2>
+        <button id="clearBtn" class="clear-btn" type="button">Очистить</button>
+      </div>
+      <textarea id="response" readonly spellcheck="false" aria-label="Ответ API"></textarea>
+      <div id="status" class="status" aria-live="polite"></div>
+    </section>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
+
+# GREEN-API Test Task — Специалист технической поддержки 2 линии
+
+Тестовая HTML-страница для вызова методов GREEN-API:
+
+- `getSettings`
+- `getStateInstance`
+- `sendMessage`
+- `sendFileByUrl`
+
+## Запуск
+
+Проект состоит из обычных HTML/CSS/JavaScript-файлов и не требует сборки.
+
+Можно открыть `index.html` в браузере или запустить через VS Code Live Server.
+
+## Настройка
+
+В `script.js` по умолчанию используется:
+
+```js
+const API_URL = 'https://api.green-api.com';
+```
+
+Если в личном кабинете GREEN-API для конкретного инстанса указан другой `apiUrl`, замените это значение.
+
+## Использование
+
+1. Создайте инстанс GREEN-API и авторизуйте WhatsApp.
+2. Введите `idInstance` и `ApiTokenInstance`.
+3. Нажмите `getSettings` или `getStateInstance`.
+4. Для `sendMessage` укажите `Chat ID` и текст сообщения.
+5. Для `sendFileByUrl` укажите `Chat ID` и публичную ссылку на файл. Имя файла определяется автоматически из URL.
+6. Ответ API отображается в поле «Ответ» только для чтения.
+
+## GitHub Pages
+
+После загрузки репозитория на GitHub:
+
+`Settings → Pages → Deploy from a branch → main → /(root) → Save`
+
+Через некоторое время GitHub Pages выдаст публичную ссылку на `index.html`.
+
+## Важно
+
+Не публикуйте реальные `ApiTokenInstance` в репозитории, README, скриншотах или видео. Вводите токен непосредственно на опубликованной странице во время демонстрации.
+
+// GREEN-API test task
+// The public API URL is used by default. If your GREEN-API console shows
+// a different apiUrl for the instance, replace API_URL with that value.
+const API_URL = 'https://api.green-api.com';
+
+const $ = (id) => document.getElementById(id);
+
+const responseBox = $('response');
+const statusBox = $('status');
+
+function setStatus(message = '', type = '') {
+  statusBox.textContent = message;
+  statusBox.className = `status ${type}`.trim();
+}
+
+function getCredentials() {
+  const idInstance = $('idInstance').value.trim();
+  const apiTokenInstance = $('apiTokenInstance').value.trim();
+
+  if (!idInstance || !apiTokenInstance) {
+    throw new Error('Введите idInstance и ApiTokenInstance.');
+  }
+
+  return { idInstance, apiTokenInstance };
+}
+
+function endpoint(method) {
+  const { idInstance, apiTokenInstance } = getCredentials();
+  return `${API_URL}/waInstance${encodeURIComponent(idInstance)}/${method}/${encodeURIComponent(apiTokenInstance)}`;
+}
+
+function showResponse(data) {
+  responseBox.value = typeof data === 'string' ? data : JSON.stringify(data, null, 2);
+}
+
+async function request(method, options = {}) {
+  const url = endpoint(method);
+  setStatus(`Выполняется ${method}...`);
+
+  try {
+    const response = await fetch(url, {
+      method: options.method || 'GET',
+      headers: { 'Content-Type': 'application/json' },
+      body: options.body ? JSON.stringify(options.body) : undefined
+    });
+
+    const text = await response.text();
+    let data;
+    try {
+      data = JSON.parse(text);
+    } catch {
+      data = text;
+    }
+
+    showResponse(data);
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+
+    setStatus(`${method}: успешно, HTTP ${response.status}`, 'success');
+    return data;
+  } catch (error) {
+    const message = error instanceof TypeError
+      ? 'Не удалось выполнить запрос. Проверьте API URL, CORS, интернет-соединение и данные инстанса.'
+      : error.message;
+    if (!responseBox.value) showResponse({ error: message });
+    setStatus(message, 'error');
+  }
+}
+
+$('getSettingsBtn').addEventListener('click', () => request('getSettings'));
+$('getStateBtn').addEventListener('click', () => request('getStateInstance'));
+
+$('sendMessageBtn').addEventListener('click', async () => {
+  try {
+    const chatId = $('messageChatId').value.trim();
+    const message = $('messageText').value.trim();
+
+    if (!chatId || !message) {
+      throw new Error('Для sendMessage заполните Chat ID и сообщение.');
+    }
+
+    await request('sendMessage', {
+      method: 'POST',
+      body: { chatId, message }
+    });
+  } catch (error) {
+    showResponse({ error: error.message });
+    setStatus(error.message, 'error');
+  }
+});
+
+$('sendFileBtn').addEventListener('click', async () => {
+  try {
+    const chatId = $('fileChatId').value.trim();
+    const urlFile = $('fileUrl').value.trim();
+    const caption = $('fileCaption').value.trim();
+
+    if (!chatId || !urlFile) {
+      throw new Error('Для sendFileByUrl заполните Chat ID и URL файла.');
+    }
+
+    let fileName = 'file';
+    try {
+      const parsed = new URL(urlFile);
+      const name = decodeURIComponent(parsed.pathname.split('/').pop() || '');
+      if (name) fileName = name;
+    } catch {
+      throw new Error('Укажите корректный URL файла.');
+    }
+
+    const body = { chatId, urlFile, fileName };
+    if (caption) body.caption = caption;
+
+    await request('sendFileByUrl', {
+      method: 'POST',
+      body
+    });
+  } catch (error) {
+    showResponse({ error: error.message });
+    setStatus(error.message, 'error');
+  }
+});
+
+$('clearBtn').addEventListener('click', () => {
+  responseBox.value = '';
+  setStatus('');
+});
+
+:root {
+  font-family: Arial, Helvetica, sans-serif;
+  color: #202124;
+  background: #f4f6f8;
+  --green: #168a4a;
+  --green-dark: #106b39;
+  --border: #d7dce1;
+  --shadow: 0 10px 30px rgba(0, 0, 0, .08);
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f6f8fa, #eef3f0);
+}
+
+.app {
+  width: min(1120px, calc(100% - 32px));
+  margin: 40px auto;
+  display: grid;
+  grid-template-columns: 380px 1fr;
+  gap: 24px;
+}
+
+.panel {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: var(--shadow);
+}
+
+.left-panel { padding: 28px; }
+.response-panel { padding: 28px; display: flex; flex-direction: column; min-height: 760px; }
+
+h1 {
+  margin: 0;
+  font-size: 28px;
+  color: var(--green);
+}
+
+.subtitle {
+  margin: 6px 0 24px;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.field-group, .method-block { margin-bottom: 18px; }
+
+label {
+  display: block;
+  margin: 0 0 7px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #454b52;
+}
+
+label span { font-weight: 400; color: #8a9199; }
+
+input, textarea {
+  width: 100%;
+  border: 1px solid #cfd5db;
+  border-radius: 8px;
+  padding: 11px 12px;
+  font: inherit;
+  background: #fff;
+  outline: none;
+  transition: border .15s, box-shadow .15s;
+}
+
+input:focus, textarea:focus {
+  border-color: #7bbd99;
+  box-shadow: 0 0 0 3px rgba(22, 138, 74, .10);
+}
+
+textarea { resize: vertical; }
+
+.buttons, .method-block { border-top: 1px solid #edf0f2; padding-top: 18px; }
+
+button {
+  width: 100%;
+  border: 0;
+  border-radius: 8px;
+  padding: 12px 14px;
+  margin-bottom: 10px;
+  background: var(--green);
+  color: #fff;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background .15s, transform .05s, opacity .15s;
+}
+
+button:hover { background: var(--green-dark); }
+button:active { transform: translateY(1px); }
+button:disabled { opacity: .55; cursor: wait; }
+
+.response-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+h2 { margin: 0; font-size: 22px; }
+
+.clear-btn {
+  width: auto;
+  margin: 0;
+  padding: 8px 12px;
+  background: #eef2f4;
+  color: #4b5563;
+}
+.clear-btn:hover { background: #e1e7eb; }
+
+#response {
+  flex: 1;
+  min-height: 650px;
+  background: #fbfcfd;
+  font-family: Consolas, "Courier New", monospace;
+  font-size: 14px;
+  line-height: 1.5;
+  resize: none;
+}
+
+.status { min-height: 20px; margin-top: 10px; color: #66707a; font-size: 13px; }
+.status.error { color: #b42318; }
+.status.success { color: var(--green-dark); }
+
+.hint {
+  margin: 2px 0 0;
+  color: #7a838c;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+@media (max-width: 820px) {
+  .app { grid-template-columns: 1fr; margin: 18px auto; }
+  .response-panel { min-height: 520px; }
+  #response { min-height: 420px; }
+}
+
+.DS_Store
+Thumbs.db
+.vscode/
+*.log
+.env
